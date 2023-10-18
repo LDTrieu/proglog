@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"net/http"
+	"proglog/internal/log"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
@@ -15,8 +16,7 @@ func buildAPIPath(path string) string {
 func NewHTTPServer(addr string) http.Server {
 	r := chi.NewRouter()
 	httpServer := newHttpServer()
-	r.Get(buildAPIPath("/health"), func(writer http.ResponseWriter,
-		request *http.Request) {
+	r.Get(buildAPIPath("/health"), func(writer http.ResponseWriter, request *http.Request) {
 		writer.Header()
 		_, err := writer.Write([]byte("OK"))
 		if err != nil {
@@ -34,25 +34,24 @@ func NewHTTPServer(addr string) http.Server {
 }
 
 type httpServer struct {
-	Log *Log
+	Log *log.Log
 }
 
 func newHttpServer() *httpServer {
 	return &httpServer{
-		Log: NewLog(),
+		Log: log.NewLog(),
 	}
 }
 
 type ProduceRequest struct {
-	Record Record `json:"record"`
+	Record log.Record `json:"record"`
 }
 
 type ProduceResponse struct {
 	Offset uint64 `json:"offset"`
 }
 
-func (s *httpServer) produceHandler(write http.ResponseWriter,
-	request *http.Request) {
+func (s *httpServer) produceHandler(write http.ResponseWriter, request *http.Request) {
 	var body ProduceRequest
 	err := json.NewDecoder(request.Body).Decode(&body)
 	if err != nil {
@@ -77,7 +76,7 @@ func (s *httpServer) produceHandler(write http.ResponseWriter,
 }
 
 type consumeResponse struct {
-	Record Record `json:"record"`
+	Record log.Record `json:"record"`
 }
 
 func (s *httpServer) consumeHandler(write http.ResponseWriter, request *http.Request) {

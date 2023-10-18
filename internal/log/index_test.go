@@ -6,9 +6,23 @@ import (
 	"testing"
 )
 
+// var tempFile *os.File
 var config Config
 
-func Testmain(t *testing.T) {
+func TestMain(m *testing.M) {
+	//var err error
+	//
+	//if err != nil {
+	//	fmt.Println(err)
+	//	return
+	//}
+
+	code := m.Run()
+
+	os.Exit(code)
+}
+
+func Test_index_Write_Read(t *testing.T) {
 	tempFile, err := os.CreateTemp(os.TempDir(), "index_text")
 	config.MaxIndexBytes = 1024
 	defer os.Remove(tempFile.Name())
@@ -44,6 +58,7 @@ func Testmain(t *testing.T) {
 	if err != nil {
 		t.Errorf("newIndex() error = %v", err.Error())
 	}
+
 	// test file name
 	if i.Name() != tempFile.Name() {
 		t.Errorf("Name() error, got %v want %v", i.Name(), tempFile.Name())
@@ -51,6 +66,7 @@ func Testmain(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+
 			// test write
 			if err := i.Write(tt.args.off, tt.args.position); err != nil {
 				t.Errorf("Write() error = %v", err)
@@ -63,11 +79,14 @@ func Testmain(t *testing.T) {
 			}
 		})
 	}
+
+	// index should be error if reading past existing entries
 	_, _, err = i.Read(int64(len(tests)))
 	if err != io.EOF {
 		t.Errorf("expect EOF %v", err)
 	}
 
+	// test close file
 	err = i.Close()
 	if err != nil {
 		t.Errorf("Close() error = %v", err.Error())
@@ -131,4 +150,5 @@ func Test_Simple_Read_Write(t *testing.T) {
 	if err != io.EOF {
 		t.Errorf("expected EOF, got %v", err.Error())
 	}
+	io.MultiReader()
 }

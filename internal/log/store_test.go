@@ -8,12 +8,11 @@ import (
 
 func Test_store_Append(t *testing.T) {
 	file, _ := os.CreateTemp("", "store_append_test")
-	s, _ := NewStore(file)
+	s, _ := newStore(file)
 
 	type args struct {
 		data []byte
 	}
-
 	tests := []struct {
 		name             string
 		args             args
@@ -53,15 +52,40 @@ func Test_store_Append(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func Test_store_Append_Read(t *testing.T) {
+	content := "test"
+	file, _ := os.CreateTemp("", "store_append_test")
+	defer file.Close()
+
+	s, _ := newStore(file)
+
+	u, u2, err := s.Append([]byte(content))
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(u, u2)
+
+	data, err := s.Read(u2)
+	if err != nil {
+		panic(err)
+	}
+
+	if string(data) != content {
+		t.Errorf("want %v, got %v", content, string(data))
+	}
+
+	fmt.Printf("got: %q, want: %v\n", data, content)
+}
+
+func Test_store_ReadAt(t *testing.T) {
 	content := "abcd"
 	file, _ := os.CreateTemp("", "store_append_test")
 	defer file.Close()
 
-	s, _ := NewStore(file)
+	s, _ := newStore(file)
+
 	u, u2, err := s.Append([]byte(content))
 	if err != nil {
 		panic(err)
@@ -75,12 +99,14 @@ func Test_store_Append_Read(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
+
 	fmt.Printf("readAt %q\n", test)
 
 	data, err := s.Read(u2)
 	if err != nil {
 		panic(err)
 	}
+
 	fmt.Println(string(data))
 
 	if string(data) != content {
